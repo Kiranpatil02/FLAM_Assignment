@@ -9,16 +9,13 @@ This system should manage background jobs with worker processes, handle retries 
 </p>
 
 
-Quick start: ``
-
 
 </div>
 
 ## Getting started
 
 ```bash
-git clone <>
-cd 
+git clone https://github.com/Kiranpatil02/FLAM_Assignment.git
 ```
 ```bash
 npm install
@@ -41,7 +38,9 @@ Set cutom retries for specific jobs
 node src/cli/queuectl.js enqueue "sleep 2" --retries 5
 ```
 <p align="center">
-    <img src="">
+    <img src="assests\example1.png">
+    <br/>
+    <img src="assests\example2.png" >
 </p>
 
 <h3> Managing Workers</h3>
@@ -65,6 +64,13 @@ through established IPC connection between Parent and child
 ```
 node src/cli/queuectl.js worker:stop
 ```
+<p align="center">
+    <img src="assests\example3.png">
+    <br/>
+    <img src="assests\example4.png" >
+</p>
+
+
 <h3> Checking Status and Listing jobs</h3>
 
 ```
@@ -83,6 +89,15 @@ node src/cli/queuectl.js list --state failed
 ```
 List all jobs that are in 'dead' state, 
 permanently failed.
+
+
+<p align="center">
+    <img src="assests\example5.png">
+    <br/>
+    <img src="assests\example6.png" >
+</p>
+
+
 <h3>Dead Letter Queue(DLQ) </h3>
 
 ```
@@ -100,6 +115,15 @@ node src/cli/queuectl.js dlq retry <job-id>
 ```
 node src/cli/queuectl.js config set max-retries 5
 ```
+<p align="center">
+    <img src="assests\example7.png">
+    <br/>
+    <img src="assests\example6.png" >
+    <br/>
+    <img src="assests\example8.png">
+</p>
+
+
 
 ## Job Lifecycle
 
