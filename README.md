@@ -12,6 +12,13 @@ This system should manage background jobs with worker processes, handle retries 
 
 </div>
 
+## Features
+1. Persistence: Used in SQL lite  DB and which is lightweigh embedded realational database.
+2. ErrorMessage: Failed Jobs shows clearly what went wrong during execution.
+3. Dead Letter Queue (DLQ): Jobs that reach their maximum retry attempts are moved to a DLQ.
+4. Concurrent Workers: Run multiple worker processes with prevention of Race condition.
+
+
 ## Getting started
 
 ```bash
@@ -123,6 +130,14 @@ node src/cli/queuectl.js config set max-retries 5
     <img src="assests\example8.png">
 </p>
 
+> 
+> The tables can be made Readable by using cli-table3 dependency.
+> 
+
+
+## Architecture Diagram (Brief overview)
+
+<img src="assests\arch.png">
 
 
 ## Job Lifecycle
