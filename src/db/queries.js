@@ -4,14 +4,22 @@ import {get_db,generate_uuid} from "./schema.js"
 export function Enqueuejob(command,options={}){
     const db=get_db()
 
-    const max_retries=options.max_retries??3;
+    const default_tries_config=Getconfig('max-retries');
+    
+    // console.log(`Value from Getconfig('max-retries'):`, default_tries_config); 
+
+    const sysdeafult=default_tries_config || '3';
+
+    const max_tries=options.max_retries?? parseInt(sysdeafult,10)
+    // console.log(`[DEBUG] Final max_retries to be inserted:`, max_tries);
+
 
     const add_job=db.prepare(`
         insert into jobs(id,command,max_retries)
         values (?,?,?)
         returning *
         `)
-    return add_job.get(generate_uuid(),command,max_retries)
+    return add_job.get(generate_uuid(),command,max_tries)
 }
 
 export function Claimjob(worker_id){
@@ -141,4 +149,31 @@ export function retryDeadJob(jobId) {
         throw new Error(`Job ${jobId} not found in the DLQ (state='dead').`);
     }
     return result;
+}
+
+export function Setconfig(key,value){
+     console.log(`[DEBUG] Setconfig called. Key: ${key}, Value: ${value}`);
+    const db=get_db();
+
+    const query=db.prepare(`
+        insert into config (key,value)
+        values(?,?)
+        on conflict(key) do update set value=excluded.value
+        
+        `);
+        query.run(key,value)
+}
+
+
+export function Getconfig(key){
+    const db=get_db();
+
+    const query=db.prepare(`
+        select value from config where key= ?
+        
+        `)
+        const result=query.get(key);
+        if(result) return result.value;
+
+        return undefined
 }

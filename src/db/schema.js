@@ -39,6 +39,15 @@ function create_table(){
         check (state in('pending','processing','completed','failed','dead'))
         );
 
+        create table if not exists config(
+            key text primary key,
+            value text not null
+        
+        );
+
+
+
+
         create index if not exists pending_jobs
         on jobs(state,created_at)
         where state='pending';
@@ -59,7 +68,11 @@ function create_table(){
 
 export function closeDB(){
     if(db && db.open){
+        console.log('[DEBUG] DB connection is open. Flushing and closing now.')
         db.close();
         db=null;
+    }
+    else{
+        console.log("CLosed already.")
     }
 } 

@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import { fork } from 'node:child_process';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { Enqueuejob, Listjobs,Jobstatus,retryDeadJob} from '../db/queries.js'
+import { Enqueuejob, Listjobs,Jobstatus,retryDeadJob,Setconfig,Getconfig} from '../db/queries.js'
 import fs from "node:fs"
 import os from "node:os"
+import { closeDB } from '../db/schema.js';
 
 
 const program = new Command();
@@ -18,11 +18,15 @@ program
 program
   .command('enqueue <command>')
   .description('Adds a new job to the queue')
-  .option('-r, --retries <number>', 'Maximum number of retries for the job', '3')
+  .option('-r, --retries <number>', 'Maximum number of retries for the job')
   .action((command, options) => {
     try {
-      const max_retries = parseInt(options.retries, 10);
-      const job = Enqueuejob(command, { max_retries });
+        const queryoptions={}
+
+        if(options.retries){
+            queryoptions.max_retries=parseInt(options.retries,10);
+        }
+      const job = Enqueuejob(command, queryoptions);
       console.log('✅ Enqueued new job:');
       console.table([job]);
     } catch (err) {
@@ -177,6 +181,34 @@ dlq
       console.error(`Error: ${err.message}`);
     }
   });
+
+  const config=program
+                .command('config')
+                .description('Manage queue configureation')
+
+    config
+        .command('set <key> <value>')
+        .description('set a configuation value for max-retries')
+        .action((key,value)=>{
+
+            const skeys=['max-retries'];
+            if(!skeys.includes(key)){
+                console.error(` ERROR: '${key} is not configuration key'`)
+                console.log(`supported keys include :${skeys.join(', ')}`)
+                return;
+            }
+            Setconfig(key,value);
+            console.log(`Config updated: ${key}=${value}`);
+
+
+        })
+    
+        program.hook('postAction',(thiscommand,actioncommand)=>{
+            if(thiscommand.name()!=='worker:start'){
+                console.log('Flushing DB connection...')
+                closeDB();
+            }
+        })
 
 
 
