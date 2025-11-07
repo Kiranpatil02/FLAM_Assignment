@@ -1,7 +1,18 @@
 import Database from "better-sqlite3";
 import crypto from "node:crypto"
 
-const db=new Database("queue.db")
+let db=null;
+
+export function get_db(){
+    if(!nb){
+        db=new Database("queue.db")
+        create_table(db);
+    }
+    return db;
+
+}
+
+
 
 
 export function generate_uuid(){
@@ -16,14 +27,15 @@ function create_table(){
         command text not null,
         state text default 'pending',
         attempts integer default 0,
-        max_attempts integer default 3,
-        worker_id integer
-        created_at text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))),
-        updated_at text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))),
+        max_retries integer default 3,
+        worker_id integer,
+        created_at text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+        updated_at text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+        error_msg text,
         completed_at text,
-        next_try_in text,
+        next_try_in text
 
-        check (state in('pending','running','completed','failed','dead'))
+        check (state in('pending','processing','completed','failed','dead'))
         );
 
         create index if not exists pending_jobs
