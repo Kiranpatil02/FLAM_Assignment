@@ -27,6 +27,10 @@ git clone https://github.com/Kiranpatil02/FLAM_Assignment.git
 ```bash
 npm install
 ```
+Get all commands description
+```
+node src/cliqueuectl.js -h
+```
 
 ```bash
 node src/cliqueuectl.js <command> [options]
