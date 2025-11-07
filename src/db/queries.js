@@ -1,15 +1,17 @@
 import {get_db,generate_uuid} from "./schema.js"
 
 
-export function Enqueuejob(command,attempts){
+export function Enqueuejob(command,options={}){
     const db=get_db()
 
+    const max_retries=options.max_retries??3;
+
     const add_job=db.prepare(`
-        insert into jobs(id,command,max_attempts)
+        insert into jobs(id,command,max_retries)
         values (?,?,?)
         returning *
         `)
-    return add_job.get(generate_uuid(),command,attempts)
+    return add_job.get(generate_uuid(),command,max_retries)
 }
 
 export function Claimjob(worker_id){
@@ -24,7 +26,7 @@ export function Claimjob(worker_id){
         where id=(
         select id from jobs
         where state='pending'
-            or (state='failed' and datetime(next_try_in)<=datetime('now'))
+            or (state='failed' and datetime(next_retry_at)<=datetime('now'))
             order by created_at asc
             limit 1
         )
@@ -75,9 +77,9 @@ export function Failjob(jobid,message){
 
         const query=db.prepare(`
             update jobs
-            set status='failed',
+            set state='failed',
                 error=?,
-                next_try_in =datetime('now','+' ||?||'seconds')
+                next_retry_at =datetime('now','+' || ? ||' seconds')
             where id=?
             `)
         query.run(message,backoff,jobid)
@@ -86,10 +88,10 @@ export function Failjob(jobid,message){
 
 
 
-export function Listjobs(status=null){ // default null status
+export function Listjobs(state=null){ // default null state
     const db=get_db();
 
-    if(status){
+    if(state){
         const query=db.prepare(`
             select * from jobs
                 where state=?
@@ -97,7 +99,7 @@ export function Listjobs(status=null){ // default null status
                 limit 10
             `);
 
-        return query.all(status)
+        return query.all(state)
     }else{
         const query=db.prepare(
             `
@@ -109,4 +111,34 @@ export function Listjobs(status=null){ // default null status
         return query.all();
     }
 
+}
+
+export function Jobstatus(){
+    const db=get_db();
+    const query=db.prepare(`
+        select state,count(*) as count
+        from jobs
+        group by state
+        
+        `)
+        return query.all()
+}
+
+export function retryDeadJob(jobId) {
+    const db = get_db();
+    const stmt = db.prepare(`
+        update jobs
+        set
+            state = 'pending',
+            attempts = 0,
+            error = NULL,
+            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+        where id = ? AND state = 'dead'
+        returning *
+    `);
+    const result = stmt.get(jobId);
+    if (!result) {
+        throw new Error(`Job ${jobId} not found in the DLQ (state='dead').`);
+    }
+    return result;
 }

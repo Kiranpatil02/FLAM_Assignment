@@ -4,7 +4,7 @@ import crypto from "node:crypto"
 let db=null;
 
 export function get_db(){
-    if(!nb){
+    if(!db){
         db=new Database("queue.db")
         create_table(db);
     }
@@ -33,21 +33,22 @@ function create_table(){
         updated_at text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
         error_msg text,
         completed_at text,
-        next_try_in text
+        next_retry_at text,
+        error TEXT,
 
         check (state in('pending','processing','completed','failed','dead'))
         );
 
         create index if not exists pending_jobs
         on jobs(state,created_at)
-        where state='pending'
+        where state='pending';
 
         create index if not exists worker_jobs
-        on jobs(worker_id,state)
+        on jobs(worker_id,state);
 
         create index if not exists retry_jobs
-        on jobs(state,next_try_in)
-        where state='failed'
+        on jobs(state,next_retry_at)
+        where state='failed';
         
         `)
         console.log("Table created with indexes....")
@@ -57,6 +58,8 @@ function create_table(){
 
 
 export function closeDB(){
-    db.close();
-    db=null;
+    if(db && db.open){
+        db.close();
+        db=null;
+    }
 } 

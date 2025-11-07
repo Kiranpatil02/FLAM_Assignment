@@ -1,4 +1,4 @@
-import { Jobcomplete,Failjob,Claimjob } from '../db/queries';
+import { Jobcomplete,Failjob,Claimjob } from '../db/queries.js';
 import { exec } from 'node:child_process'; 
 
 function executeCommand(command) {
