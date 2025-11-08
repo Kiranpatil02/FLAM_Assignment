@@ -152,6 +152,34 @@ node src/cli/queuectl.js config set max-retries 5
 4. failed: job's command failed, but it  retries remaining with deafult tries or custom tries. It will be picked up again after its next_retry_at timestamp.
 5. dead: The job has failed and reached maximum number of retry attempts. It is now in the Dead Letter Queue (DLQ).
 
+## References (Things I studied before I dived in.)
+
+1. ### [Node Js Child Process working](https://nodejs.org/api/child_process.html)
+
+- Explains everything related to spawning multiple worker, either through shell execution, file execution and establishing a communication channel between child process and Parent process what is known as IPC channel.
+- Also studied about SIGTERM, SIGINT mainly, others breifly, how they interpet signals to stop child process.
+- Exit calls for gracefull shutdown and immediate shutdown when errors
+
+2. ###  [Commander JS (Parsing Command line arguments)](https://www.npmjs.com/package/commander#life-cycle-hooks)
+
+- A npm package, which helps to write Command line  interfaces.
+- All functions, like creating a commands, description, versions, hooks(important) is made by help of this package.
+
+3. ###  [Better-sqllite3](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md)
+- A quick lightweight relational database management, used in thsi project  for queueing Jobs, managing Locks, dead lock prevention, indexing etc..
+- This helps the Queue Jobs stay alive after restarts.
+
+4. ###  [Dead Letter Queue](https://en.wikipedia.org/wiki/Dead_letter_queue)
+- Everything about Dead Letter queue and its working, applications.
+
+5. ###  [Exponention backoff](https://en.wikipedia.org/wiki/Exponential_backoff)
+-   [Article for exponential backoff](https://medium.com/bobble-engineering/how-does-exponential-backoff-work-90ef02401c65)
+- Working of Exponential backoff and how its used.
+
+6. ###  [Brief video about Child process like spawn(), exec(), execfile(), fork() ](https://www.youtube.com/watch?v=C1v4MXGhpcM&pp=ygUVbm9kZSBqcyBjaGlsZCBwcm9jZXNz)
+
+
+
 
 
 
