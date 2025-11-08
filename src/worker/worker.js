@@ -32,14 +32,14 @@ async function runWorker() {
         const job = Claimjob(workerId);
 
         if (job) {
-            console.log(`[${workerId}] Claimed job ${job.id}: ${job.command}`);
+            console.log(`[${workerId}] Claimed job ${job.jobid}: ${job.command}`);
             try {
                 const { stdout } = await executeCommand(job.command);
                 console.log(`[${workerId}] Job ${job.id} succeeded.`);
-                Jobcomplete(job.id);
+                Jobcomplete(job.jobid);
             } catch (error) {
-                console.error(`[${workerId}] Job ${job.id} failed. Error: ${error.stderr}`);
-                Failjob(job.id, error.stderr || error.message);
+                console.error(`[${workerId}] Job ${job.jobid} failed. Error: ${error.stderr}`);
+                Failjob(job.jobid, error.stderr || error.message);
             }
         } else {
             await new Promise(resolve => setTimeout(resolve, 2000));

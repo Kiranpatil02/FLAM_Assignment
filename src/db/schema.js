@@ -23,7 +23,8 @@ export function generate_uuid(){
 function create_table(){
     db.exec(`
         create table if not exists jobs(
-        id text primary key,
+        -- id text primary key,
+        jobid text primary key,
         command text not null,
         state text default 'pending',
         attempts integer default 0,
@@ -31,7 +32,6 @@ function create_table(){
         worker_id integer,
         created_at text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
         updated_at text default (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-        error_msg text,
         completed_at text,
         next_retry_at text,
         error TEXT,
@@ -68,7 +68,6 @@ function create_table(){
 
 export function closeDB(){
     if(db && db.open){
-        console.log('[DEBUG] DB connection is open. Flushing and closing now.')
         db.close();
         db=null;
     }

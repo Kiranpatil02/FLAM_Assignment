@@ -16,20 +16,23 @@ program
 
 
 program
-  .command('enqueue <command>')
+  .command('enqueue <jobid> <command>')
   .description('Adds a new job to the queue')
   .option('-r, --retries <number>', 'Maximum number of retries for the job')
-  .action((command, options) => {
+  .action((jobid,command, options) => {
     try {
         const queryoptions={}
 
         if(options.retries){
             queryoptions.max_retries=parseInt(options.retries,10);
         }
-      const job = Enqueuejob(command, queryoptions);
+      const job = Enqueuejob(jobid,command, queryoptions);
       console.log('✅ Enqueued new job:');
       console.table([job]);
     } catch (err) {
+      if(err.code=='SQLITE_CONSTRAINT_PRIMARYKEY'){
+        console.log(`A job with ID '${jobid}' already exissts!!.`)
+      }
       console.error(' Error enqueuing job:', err.message);
     }
   });

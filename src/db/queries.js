@@ -1,7 +1,7 @@
 import {get_db,generate_uuid} from "./schema.js"
 
 
-export function Enqueuejob(command,options={}){
+export function Enqueuejob(jobid,command,options={}){
     const db=get_db()
 
     const default_tries_config=Getconfig('max-retries');
@@ -15,11 +15,11 @@ export function Enqueuejob(command,options={}){
 
 
     const add_job=db.prepare(`
-        insert into jobs(id,command,max_retries)
+        insert into jobs(jobid,command,max_retries)
         values (?,?,?)
-        returning *
+        returning jobid,command,state,attempts,max_retries,created_at,updated_at,next_retry_at,error
         `)
-    return add_job.get(generate_uuid(),command,max_tries)
+    return add_job.get(jobid,command,max_tries)
 }
 
 export function Claimjob(worker_id){
@@ -31,8 +31,8 @@ export function Claimjob(worker_id){
             worker_id=?,
             attempts=attempts+1,
             updated_at=strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-        where id=(
-        select id from jobs
+        where jobid=(
+        select jobid from jobs
         where state='pending'
             or (state='failed' and datetime(next_retry_at)<=datetime('now'))
             order by created_at asc
@@ -52,7 +52,7 @@ export function Jobcomplete(jobid){
         set state='completed',
             completed_at=datetime('now'),
             error=null
-        where id=?
+        where jobid=?
         
         `)
     return complete_job.run(jobid)
@@ -63,7 +63,7 @@ export function Failjob(jobid,message){
     const db=get_db();
 
     const job=db.prepare(`
-        select attempts, max_retries from jobs where id=?
+        select attempts, max_retries from jobs where jobid=?
         
         `).get(jobid);
 
@@ -75,7 +75,7 @@ export function Failjob(jobid,message){
             update jobs
             set state='dead',
                 error=?
-            where id=?
+            where jobid=?
             `)
         query.run(message,jobid)
         
@@ -88,7 +88,7 @@ export function Failjob(jobid,message){
             set state='failed',
                 error=?,
                 next_retry_at =datetime('now','+' || ? ||' seconds')
-            where id=?
+            where jobid=?
             `)
         query.run(message,backoff,jobid)
     }
@@ -141,7 +141,7 @@ export function retryDeadJob(jobId) {
             attempts = 0,
             error = NULL,
             updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
-        where id = ? AND state = 'dead'
+        where jobid = ? AND state = 'dead'
         returning *
     `);
     const result = stmt.get(jobId);
