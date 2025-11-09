@@ -42,11 +42,11 @@ node src/cliqueuectl.js <command> [options]
 
 Add a job with default retries(3)
 ```bash
-node src/cli/queuectl.js enqueue "echo 'Hello world'"
+node src/cli/queuectl.js job1 enqueue "echo 'Hello world'"
 ```
 Set cutom retries for specific jobs 
 ```bash
-node src/cli/queuectl.js enqueue "sleep 2" --retries 5
+node src/cli/queuectl.js job2 enqueue "sleep 2" --retries 5
 ```
 <p align="center">
     <img src="assests\example1.png">
