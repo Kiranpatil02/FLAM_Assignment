@@ -141,7 +141,7 @@ node src/cli/queuectl.js config set max-retries 5
 
 ## Architecture Diagram (Brief overview)
 
-<img src="assests\arch.png">
+<img src="assests\arch2.png">
 
 
 ## Job Lifecycle
